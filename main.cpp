@@ -112,6 +112,7 @@ Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
 Cvec3 renderColor(Ray r, float nb) {
   Cvec3 tc = Cvec3(0.);
   Cvec3 mask = Cvec3(1.0);
+  float atten = .8 ; //value < 1. for i.e. a white surface color
   
   for (int b = 0; b < nb; ++b) {
     float march = intersect(r.o_, r.d_);
@@ -124,10 +125,10 @@ Cvec3 renderColor(Ray r, float nb) {
     Cvec3 pos = r.o_ + r.d_ * march;
     Cvec3 nor = eNormal(pos);
     
-    Cvec3 cs = Cvec3(180., 165., 150.);
+    Cvec3 cs = Cvec3(255.);
     Cvec3 cd = applyLighting(pos, nor);
     for (int i = 0 ; i < 3; ++i) {
-      mask[i] *= cs[i] / 255.;
+      mask[i] *= atten * cs[i] / 255.;
       tc[i] += mask[i] * cd[i];
     }
     
@@ -139,7 +140,7 @@ Cvec3 renderColor(Ray r, float nb) {
 }
 
 Cvec3 calcPixelColor(int x, int y) {
-  float nRays = 1.; //256.
+  float nRays = 16.; //256.
   float nBounces = 4.;
   
   Cvec3 col = Cvec3();
