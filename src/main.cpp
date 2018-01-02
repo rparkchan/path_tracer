@@ -1,27 +1,30 @@
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
  *
- * a brute force implementation of cpu-based path tracing:
- * largely inspired by research from Iñigo Quilez
+ * main.cpp
  *
- * cvec.h adapted from Steven J. Gortler (Harvard CS175)
+ * a brute force implementation of cpu-based path tracing:
+ * largely inspired by the work of Iñigo Quilez
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <chrono>
 
 #include "cvec.h"
+#include "sdEstimators.h"
 
 using namespace std;
+using namespace std::chrono;
 
-float WIDTH = 512.;
-float HEIGHT = 512.;
-float AR = WIDTH/HEIGHT;
-Cvec3 sunp = Cvec3(15,10,-15);
+const float WIDTH = 1024.;
+const float HEIGHT = 512.;
+const float AR = WIDTH/HEIGHT;
+const Cvec3 sunp = Cvec3(15,10,-15);
 
 float randf() {
-  return (rand() % 10000) * 1./10000;
+  return static_cast<float> (rand() / static_cast<float>((RAND_MAX)));
 }
 
 Cvec3 lambDirection(Cvec3 n) {
@@ -48,28 +51,11 @@ Ray cRay(Cvec3 ro, Cvec3 la, Cvec2 pc, float zm) {
   return Ray(ro, rd);
 }
 
-float sdBox(Cvec3 p, Cvec3 s) {
-  return max(abs(p) - s);
-}
-
-float sdSphere(Cvec3 p, Cvec3 c, float r) {
-  return norm(p - c) - r;
-}
-
-float sdPlane(Cvec3 p, float y) {
-  return norm(Cvec3(p[0], y, p[2]) - p);
-}
-
 float map(Cvec3 p) {
-  float box_a = sdBox(p, Cvec3(.5));
-  float sp_a = sdSphere(p, Cvec3(0.), 1.);
-  float sp_b = sdSphere(p, Cvec3(1.8,0.,-1.8), 1.);
-  float pl_a = sdPlane(p, -1.);
+  float sp = sdSphere(p, 1.);
+  float pl = sdPlane(p, -1.);
   
-//  return box_a;
-  return min(sp_a, min(pl_a, sp_b)); //union
-//  return max(sp_a, -sp_b); //subtraction
-//  return max(sp_a, sp_b); //intersection
+  return min(sp, pl);
 }
 
 Cvec3 eNormal(Cvec3 p) { //so cool!
@@ -116,7 +102,7 @@ bool shadow(Cvec3 ro, Cvec3 rd) { //0 in shadow
 }
 
 Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
-  Cvec3 scol = Cvec3(255.);
+  Cvec3 scol = Cvec3(255.)* 2.;
   Cvec3 lightray = normalize(sunp - p);
   float ndl = max(dot(lightray, n), 0.0);
   float inShadow = shadow(p, lightray);
@@ -127,7 +113,7 @@ Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
 Cvec3 renderColor(Ray r, float nb) {
   Cvec3 tc = Cvec3(0.);
   Cvec3 mask = Cvec3(1.0);
-  float atten = .8 ; //value < 1.0 for i.e. a white surface color
+  float atten = 1. ; //value < 1.0 for i.e. a white surface color
   
   for (int b = 0; b < nb; ++b) {
     float march = intersect(r.o_, r.d_);
@@ -140,7 +126,7 @@ Cvec3 renderColor(Ray r, float nb) {
     Cvec3 pos = r.o_ + r.d_ * march;
     Cvec3 nor = eNormal(pos);
     
-    Cvec3 cs = Cvec3(255.);
+    Cvec3 cs = Cvec3(120,110,100);
     Cvec3 cd = applyLighting(pos, nor);
     for (int i = 0 ; i < 3; ++i) {
       mask[i] *= atten * cs[i] / 255.;
@@ -151,21 +137,21 @@ Cvec3 renderColor(Ray r, float nb) {
     r.d_ = lambDirection(nor);
   }
   
-  return tc;
+  return min(tc, Cvec3(255.)); //stupid hack for blinding light!
 }
 
 Cvec3 calcPixelColor(int x, int y) {
-  float nRays = 1.; //256.
-  float nBounces = 4.;
+  float nRays = 64.; //256.
+  float nBounces = 3.;
   
-  Cvec3 col = Cvec3();
+  Cvec3 col = Cvec3(0.);
   for (int i = 0; i < nRays; ++i) { //upper-right antialias
-    Cvec2 pc = Cvec2((2.*(x+randf())/WIDTH - 1.) * AR, -(2.*(y+randf())/HEIGHT - 1.)); //[-1., 1.]
-    Cvec3 ro = Cvec3(0., 1., -3.5);
+    Cvec2 pcoord = Cvec2((2.*(x+randf())/WIDTH - 1.) * AR, -(2.*(y+randf())/HEIGHT - 1.)); //[-1., 1.]
+    Cvec3 ro = Cvec3(0., 2., -5.5);
     Cvec3 la = Cvec3(0., 0., 0.);
     float zoom = 1.;
 
-    Ray ray = cRay(ro, la, pc, zoom);
+    Ray ray = cRay(ro, la, pcoord, zoom);
     Cvec3 tempcol = renderColor(ray, nBounces);
 
     col += tempcol;
@@ -179,6 +165,8 @@ int main(int argc, const char * argv[]) {
   ofstream out("out.ppm");
   out << "P3\n" << WIDTH << ' ' << HEIGHT << ' ' << "255\n";
   
+  high_resolution_clock::time_point t1 = high_resolution_clock::now();
+  
   int i_report = 10;
   for (int i = 0; i < HEIGHT; ++i) {
     if (i % i_report == 0) cout << "row #" << i << " out of " << HEIGHT << "\n";
@@ -187,4 +175,7 @@ int main(int argc, const char * argv[]) {
       out << col[0] << ' ' << col[1] << ' ' << col[2] << '\n';
     }
   }
+  
+  high_resolution_clock::time_point t2 = high_resolution_clock::now();
+  cout << "time elapsed: " << duration_cast<milliseconds>( t2 - t1 ).count() << " milliseconds!\n";
 }

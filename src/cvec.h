@@ -1,3 +1,11 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *
+ * cvec.h
+ *
+ * adapted from Steven J. Gortler's CS175 course
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef VEC_H
 #define VEC_H
 
@@ -122,6 +130,15 @@ inline T dot(const Cvec<T,n>& a, const Cvec<T,n>& b) {
   T r(0);
   for (int i = 0; i < n; ++i) {
     r += a[i]*b[i];
+  }
+  return r;
+}
+
+template <typename T, int n> //element-wise
+inline Cvec<T,n> sin(const Cvec<T,n> a) {
+  Cvec<T,n> r = Cvec<T,n>();
+  for (int i = 0; i < n; ++i) {
+    r[i] = sin(a[i]);
   }
   return r;
 }

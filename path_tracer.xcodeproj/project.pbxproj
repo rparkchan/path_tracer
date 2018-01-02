@@ -25,6 +25,7 @@
 /* Begin PBXFileReference section */
 		9469644C1FFB04980062DB20 /* cvec.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cvec.h; sourceTree = "<group>"; };
 		9469644D1FFB04980062DB20 /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		9469644F1FFB06A80062DB20 /* sdEstimators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sdEstimators.h; sourceTree = "<group>"; };
 		948B6EA01FF4315F0064D5AC /* path_tracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = path_tracer; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -42,8 +43,9 @@
 		9469644B1FFB04980062DB20 /* src */ = {
 			isa = PBXGroup;
 			children = (
-				9469644C1FFB04980062DB20 /* cvec.h */,
 				9469644D1FFB04980062DB20 /* main.cpp */,
+				9469644C1FFB04980062DB20 /* cvec.h */,
+				9469644F1FFB06A80062DB20 /* sdEstimators.h */,
 			);
 			path = src;
 			sourceTree = "<group>";
