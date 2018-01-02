@@ -1,2 +1,2 @@
-dependencies: /Users/Ryan/Desktop/repositories/path_tracer/main.cpp \
-  /Users/Ryan/Desktop/repositories/path_tracer/cvec.h
+dependencies: /Users/Ryan/Desktop/repositories/path_tracer/src/main.cpp \
+  /Users/Ryan/Desktop/repositories/path_tracer/src/cvec.h
