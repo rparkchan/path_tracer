@@ -1,3 +1,11 @@
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+ *
+ * sdEstimators.h
+ *
+ * (signed) distance estimation functions for geometries
+ *
+ * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
 #ifndef path_tracer_sdEstimators_h
 #define path_tracer_sdEstimators_h
 

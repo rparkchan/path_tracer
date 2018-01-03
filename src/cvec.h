@@ -2,7 +2,8 @@
  *
  * cvec.h
  *
- * adapted from Steven J. Gortler's CS175 course
+ * essentially an implementation of GLSL-like vector functionality:
+ * adapted from Steven J. Gortler's "Computer Graphics" course
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -98,6 +99,36 @@ public:
     }
     return *this;
   }
+  
+  Cvec operator * (const Cvec& v) { //element-wise
+    Cvec<T,n> r = Cvec<T,n>();
+    for (int i = 0; i < n; ++i) {
+      r[i] = d_[i] * v[i];
+    }
+    return r;
+  }
+  
+  Cvec operator / (const Cvec& v) { //element-wise
+    Cvec<T,n> r = Cvec<T,n>();
+    for (int i = 0; i < n; ++i) {
+      r[i] = d_[i] / v[i];
+    }
+    return r;
+  }
+  
+  Cvec& operator *= (const Cvec& v) { //element-wise
+    for (int i = 0; i < n; ++i) {
+      d_[i] *= v[i];
+    }
+    return *this;
+  }
+  
+  Cvec& operator /= (const Cvec& v) { //element-wise
+    for (int i = 0; i < n; ++i) {
+      d_[i] *= 1/v[i];
+    }
+    return *this;
+  }
 
   Cvec operator + (const Cvec& v) const {
     return Cvec(*this) += v;
@@ -139,6 +170,15 @@ inline Cvec<T,n> sin(const Cvec<T,n> a) {
   Cvec<T,n> r = Cvec<T,n>();
   for (int i = 0; i < n; ++i) {
     r[i] = sin(a[i]);
+  }
+  return r;
+}
+
+template <typename T, int n> //element-wise
+inline Cvec<T,n> mod(const Cvec<T,n> a, const T x) {
+  Cvec<T,n> r = Cvec<T,n>();
+  for (int i = 0; i < n; ++i) {
+    r[i] = fmod(a[i], x);
   }
   return r;
 }

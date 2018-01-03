@@ -22,6 +22,7 @@ const float WIDTH = 1024.;
 const float HEIGHT = 512.;
 const float AR = WIDTH/HEIGHT;
 const Cvec3 sunp = Cvec3(15,10,-15);
+const Cvec3 sunDir = normalize(Cvec3(-0.3,1.3,0.1));
 
 float randf() {
   return static_cast<float> (rand() / static_cast<float>((RAND_MAX)));
@@ -52,10 +53,7 @@ Ray cRay(Cvec3 ro, Cvec3 la, Cvec2 pc, float zm) {
 }
 
 float map(Cvec3 p) {
-  float sp = sdSphere(p, 1.);
-  float pl = sdPlane(p, -1.);
-  
-  return min(sp, pl);
+  return min(sdSphere(p, 1.), sdPlane(p, -1));
 }
 
 Cvec3 eNormal(Cvec3 p) { //so cool!
@@ -84,8 +82,8 @@ float intersect(Cvec3 ro, Cvec3 rd) {
   return dist;
 }
 
-bool shadow(Cvec3 ro, Cvec3 rd) { //0 in shadow
-  bool shad = 0;
+float shadow(Cvec3 ro, Cvec3 rd) { //0 in shadow
+  float shad = 0;
   
   float tmax = 16.0;
   float t = 0.01;
@@ -97,17 +95,17 @@ bool shadow(Cvec3 ro, Cvec3 rd) { //0 in shadow
     t += h;
   }
   
-  if (t > tmax) shad = 1;
+  if (t > tmax) shad = 1.;
   return shad;
 }
 
 Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
-  Cvec3 scol = Cvec3(255.)* 2.;
+  Cvec3 suncol = Cvec3(255., 255., 255.)* 1.9;
   Cvec3 lightray = normalize(sunp - p);
   float ndl = max(dot(lightray, n), 0.0);
   float inShadow = shadow(p, lightray);
   
-  return scol * ndl * inShadow;
+  return suncol * ndl * inShadow;
 }
 
 Cvec3 renderColor(Ray r, float nb) {
@@ -126,12 +124,11 @@ Cvec3 renderColor(Ray r, float nb) {
     Cvec3 pos = r.o_ + r.d_ * march;
     Cvec3 nor = eNormal(pos);
     
-    Cvec3 cs = Cvec3(120,110,100);
-    Cvec3 cd = applyLighting(pos, nor);
-    for (int i = 0 ; i < 3; ++i) {
-      mask[i] *= atten * cs[i] / 255.;
-      tc[i] += mask[i] * cd[i];
-    }
+    Cvec3 scol = Cvec3(.48, .48, .48)*255.;
+    Cvec3 dcol = applyLighting(pos, nor);
+    
+    mask *= (scol * atten/255.);
+    tc += (mask * dcol);
     
     r.o_ = pos;
     r.d_ = lambDirection(nor);
@@ -147,8 +144,8 @@ Cvec3 calcPixelColor(int x, int y) {
   Cvec3 col = Cvec3(0.);
   for (int i = 0; i < nRays; ++i) { //upper-right antialias
     Cvec2 pcoord = Cvec2((2.*(x+randf())/WIDTH - 1.) * AR, -(2.*(y+randf())/HEIGHT - 1.)); //[-1., 1.]
-    Cvec3 ro = Cvec3(0., 2., -5.5);
-    Cvec3 la = Cvec3(0., 0., 0.);
+    Cvec3 ro = Cvec3(0., .2, 0.);
+    Cvec3 la = Cvec3(1.5,0.7,1.5);
     float zoom = 1.;
 
     Ray ray = cRay(ro, la, pcoord, zoom);
