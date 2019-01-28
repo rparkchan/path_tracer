@@ -3,7 +3,7 @@
  * main.cpp
  *
  * a brute force implementation of cpu-based path tracing:
- * largely inspired by the work of Iñigo Quilez
+ * largely derived from Iñigo Quilez
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
@@ -18,21 +18,20 @@
 using namespace std;
 using namespace std::chrono;
 
-const float WIDTH = 1024.;
-const float HEIGHT = 512.;
+const float WIDTH = 1024;
+const float HEIGHT = 512;
 const float AR = WIDTH/HEIGHT;
-const Cvec3 sunp = Cvec3(15,10,-15);
-const Cvec3 sunDir = normalize(Cvec3(-0.3,1.3,0.1));
+
+const Cvec3 sunp = Cvec3(15,15,-15);
+const Cvec3 suncol = Cvec3(255., 255., 255.)* 1.9;
 
 float randf() {
   return static_cast<float> (rand() / static_cast<float>((RAND_MAX)));
 }
 
-Cvec3 lambDirection(Cvec3 n) {
-  float theta = 6.283185 * randf();
-  float y = randf();
-  y = 2.0 * y - 1.0;
-  
+Cvec3 lambDirection(Cvec3 n) { // from "http://www.amietia.com/lambertnotangent.html"
+  float theta = randf()*6.283185;
+  float y = randf()*2. - 1.;
   return normalize( n + Cvec3(Cvec2(cos(theta), sin(theta)) * sqrt(1.0-y*y), y) );
 }
 
@@ -53,10 +52,10 @@ Ray cRay(Cvec3 ro, Cvec3 la, Cvec2 pc, float zm) {
 }
 
 float map(Cvec3 p) {
-  return min(sdSphere(p, 1.), sdPlane(p, -1));
+  return sdSphere(Cvec3(fmod(p[0],3.),fmod(p[1],4.),p[2]), 1.);
 }
 
-Cvec3 eNormal(Cvec3 p) { //so cool!
+Cvec3 eNormal(Cvec3 p) {
   float e = 0.0001;
   return normalize(Cvec3(
     map(Cvec3(p[0] + e, p[1], p[2])) - map(Cvec3(p[0] - e, p[1], p[2])),
@@ -100,8 +99,7 @@ float shadow(Cvec3 ro, Cvec3 rd) { //0 in shadow
 }
 
 Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
-  Cvec3 suncol = Cvec3(255., 255., 255.)* 1.9;
-  Cvec3 lightray = normalize(sunp - p);
+  Cvec3 lightray = normalize(sunp - p); //point light
   float ndl = max(dot(lightray, n), 0.0);
   float inShadow = shadow(p, lightray);
   
@@ -111,7 +109,7 @@ Cvec3 applyLighting(Cvec3 p, Cvec3 n) {
 Cvec3 renderColor(Ray r, float nb) {
   Cvec3 tc = Cvec3(0.);
   Cvec3 mask = Cvec3(1.0);
-  float atten = 1. ; //value < 1.0 for i.e. a white surface color
+  float atten = 1. ; //value < 1.0 for i.e. Cvec3(255.)
   
   for (int b = 0; b < nb; ++b) {
     float march = intersect(r.o_, r.d_);
@@ -138,14 +136,14 @@ Cvec3 renderColor(Ray r, float nb) {
 }
 
 Cvec3 calcPixelColor(int x, int y) {
-  float nRays = 64.; //256.
+  float nRays = 1.; //256.
   float nBounces = 3.;
   
   Cvec3 col = Cvec3(0.);
   for (int i = 0; i < nRays; ++i) { //upper-right antialias
     Cvec2 pcoord = Cvec2((2.*(x+randf())/WIDTH - 1.) * AR, -(2.*(y+randf())/HEIGHT - 1.)); //[-1., 1.]
-    Cvec3 ro = Cvec3(0., .2, 0.);
-    Cvec3 la = Cvec3(1.5,0.7,1.5);
+    Cvec3 ro = Cvec3(0., 5., 5.); // origin
+    Cvec3 la = Cvec3(0, 0, 0); // lookat
     float zoom = 1.;
 
     Ray ray = cRay(ro, la, pcoord, zoom);
@@ -168,8 +166,8 @@ int main(int argc, const char * argv[]) {
   for (int i = 0; i < HEIGHT; ++i) {
     if (i % i_report == 0) cout << "row #" << i << " out of " << HEIGHT << "\n";
     for (int j = 0; j < WIDTH; ++j) {
-      Cvec3 col = calcPixelColor(j, i);
-      out << col[0] << ' ' << col[1] << ' ' << col[2] << '\n';
+      Cvec3 pix_col = calcPixelColor(i, j);
+      out << pix_col[0] << ' ' << pix_col[1] << ' ' << pix_col[2] << '\n';
     }
   }
   

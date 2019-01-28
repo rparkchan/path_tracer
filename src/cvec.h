@@ -2,7 +2,7 @@
  *
  * cvec.h
  *
- * essentially an implementation of GLSL-like vector functionality:
+ * an implementation of GLSL-like vector functionality:
  * adapted from Steven J. Gortler's "Computer Graphics" course
  *
  * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
