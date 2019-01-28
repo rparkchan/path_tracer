@@ -1,0 +1,4 @@
+path_tracer.xcodeproj
+build/
+a.out
+out.ppm
